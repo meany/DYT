@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,5 +8,35 @@
     <Version>1.0.0.0</Version>
     <AssemblyName>tbot</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Config.TelegramBot.Local.json" />
+    <None Remove="Config.TelegramBot.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Config.TelegramBot.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config.TelegramBot.Local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Config.TelegramBot.json</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
+    <PackageReference Include="NLog.Config" Version="4.6.5" />
+    <PackageReference Include="Telegram.Bot" Version="14.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dm.DYT.csproj" />
+    <ProjectReference Include="..\Data\Data.csproj" />
+  </ItemGroup>
 
 </Project>

@@ -44,9 +44,17 @@ namespace dm.DYT.Common
             return string.Format("{0:#,##0.00000000}", source);
         }
 
-        public static string FormatDyt(this decimal source)
+        public static string FormatEth(this decimal source)
         {
-            return string.Format("{0:#,##0.########}", source);
+            return string.Format("{0:#,##0.00000000}", source);
+        }
+
+        public static string FormatDyt(this decimal source, bool round = true)
+        {
+            if (round)
+                return string.Format("{0:#,##0.######}", Math.Round(source));
+
+            return string.Format("{0:#,##0.######}", source);
         }
 
         public static string FormatUsd(this decimal source)

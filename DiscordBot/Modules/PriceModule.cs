@@ -98,25 +98,24 @@ namespace dm.DYT.DiscordBot.Modules
                         author.WithName(title);
                     })
                     .WithDescription($"**{stat.BurnLast24H.FormatDyt()} DYT** have been burned in the last 24 hours! {dynamite}")
-                    .AddField($"— Market (ForkDelta/{price.Date.ToDate()})", "```ml\n" +
+                    .AddField($"— Market (ForkDelta)", "```ml\n" +
                         $"Price/USD:   ${price.PriceUSD.FormatUsd()}\n" +
                         $"Price/BTC:   ₿{price.PriceBTC.FormatBtc()}\n" +
-                        $"Price/ETH:   Ξ{price.PriceETH.FormatDyt()}\n" +
+                        $"Price/ETH:   Ξ{price.PriceETH.FormatDyt(false)}\n" +
                         $"Market Cap:  ${price.MarketCapUSD.FormatLarge()}\n" +
                         $"Volume/24H:  ${price.VolumeUSD.FormatLarge()}" +
                         "```")
-                    .AddField($"— Statistics (DYT/{stat.Date.ToDate()})", "```ml\n" +
+                    .AddField($"— Statistics (DYT)", "```ml\n" +
                         $"Transactions:   {stat.Transactions.Format()}\n" +
                         $"Total Supply:   {stat.Supply.FormatDyt()}\n" +
                         $"Circulation:    {stat.Circulation.FormatDyt()}\n" +
-                        $"Total Burned:   {stat.Burned.FormatDyt()}\n" +
+                        $"Total Burned:   {stat.Burned.FormatDyt()} (Rate: {stat.BurnAvgDay.FormatDyt()}/day)\n" +
                         $"Burn/Last/1H:   {stat.BurnLast1H.FormatDyt()}\n" +
-                        $"Burn/Last/24H:  {stat.BurnLast24H.FormatDyt()}\n" +
-                        $"Burn/Avg/Day:   {stat.BurnAvgDay.FormatDyt()}\n" +
+                        $"Burn/Last/24H:  {stat.BurnLast24H.FormatDyt()}" +
                         "```")
                     .WithFooter(footer =>
                     {
-                        footer.WithText($"Powered by Etherscan.io APIs");
+                        footer.WithText($"{price.Date.ToDate()}. Powered by Etherscan.io APIs.");
                     });
 
                     await Discord.ReplyAsync(Context, output, deleteUserMessage: false).ConfigureAwait(false);
