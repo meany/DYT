@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RuntimeFrameworkVersion>2.2.1</RuntimeFrameworkVersion>
+    <RootNamespace>dm.DYT.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Config.Data.json" />
+    <None Remove="Config.DiscordBot.Local.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Config.Data.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config.Data.Local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Config.Data.json</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dm.DYT.csproj" />
+  </ItemGroup>
+
+</Project>

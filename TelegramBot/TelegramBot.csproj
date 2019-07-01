@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>dm.DYT.TelegramBot</RootNamespace>
+    <Version>1.0.0.0</Version>
+    <AssemblyName>tbot</AssemblyName>
+  </PropertyGroup>
+
+</Project>

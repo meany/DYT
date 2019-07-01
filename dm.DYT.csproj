@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\**" />
+    <Compile Remove="DiscordBot\**" />
+    <Compile Remove="Prices\**" />
+    <Compile Remove="Stats\**" />
+    <Compile Remove="TelegramBot\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="DiscordBot\**" />
+    <EmbeddedResource Remove="Prices\**" />
+    <EmbeddedResource Remove="Stats\**" />
+    <EmbeddedResource Remove="TelegramBot\**" />
+    <None Remove="Data\**" />
+    <None Remove="DiscordBot\**" />
+    <None Remove="Prices\**" />
+    <None Remove="Stats\**" />
+    <None Remove="TelegramBot\**" />
+  </ItemGroup>
+
+</Project>

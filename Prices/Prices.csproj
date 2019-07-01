@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>dm.DYT.Prices</RootNamespace>
+    <AssemblyName>prices</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Config.Prices.json" />
+    <None Remove="Config.Prices.Local.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Config.Prices.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config.Prices.Local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>Config.Prices.json</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
+    <PackageReference Include="NLog.Config" Version="4.6.5" />
+    <PackageReference Include="PureWebSockets" Version="2.4.3" />
+    <PackageReference Include="RestSharp" Version="106.6.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Data\Data.csproj" />
+    <ProjectReference Include="..\dm.DYT.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+{
+  "BotHelp": true,
+  "BotName": "<NICK>",
+  "BotPlaying": "<PLAYING>",
+  "BotPrefix": ".",
+  "BotToken": "<TOKEN>",
+  "ChannelIds": [],
+  "EmoteGood": "✅",
+  "EmoteBad": "❌",
+  "EmoteDynamite": "Dynamite",
+  "RequestCooldown": 30,
+
+  "ConnectionStrings": {
+    "Database": "<CONNECTION STRING>"
+  }
+}
