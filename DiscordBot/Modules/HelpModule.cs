@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using dm.DYT.Common;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ namespace dm.DYT.DiscordBot.Modules
                         AddHelp(cmd, ref output);
                         output.WithAuthor(author =>
                         {
-                            author.WithName($"DynamiteBot v{Util.GetVersion()}");
+                            author.WithName($"DynamiteBot v{Common.Util.GetVersion()}");
                         }).WithFooter(footer =>
                         {
                             footer.WithText($"Use '{config.BotPrefix}help <command>' to get help with a specifc command")

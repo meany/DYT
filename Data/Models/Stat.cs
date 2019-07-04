@@ -16,6 +16,7 @@ namespace dm.DYT.Data.Models
     {
         public int StatId { get; set; }
         public DateTime Date { get; set; }
+        public Guid Group { get; set; }
         public int Transactions { get; set; }
         [Column(TypeName = "decimal(9, 4)")]
         public decimal TxAvgDay { get; set; }

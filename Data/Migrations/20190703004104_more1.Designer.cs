@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dm.DYT.Data;
 
 namespace dm.DYT.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190703004104_more1")]
+    partial class more1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,12 +37,16 @@ namespace dm.DYT.Data.Migrations
 
                     b.Property<int>("MarketCapUSDMove");
 
-                    b.Property<int>("MarketCapUSDWeighted");
+                    b.Property<decimal>("MarketCapUSDPct")
+                        .HasColumnType("decimal(5, 4)");
 
                     b.Property<decimal>("PriceBTC")
                         .HasColumnType("decimal(16, 8)");
 
                     b.Property<int>("PriceBTCMove");
+
+                    b.Property<decimal>("PriceBTCPct")
+                        .HasColumnType("decimal(5, 4)");
 
                     b.Property<decimal>("PriceBTCWeighted")
                         .HasColumnType("decimal(16, 8)");
@@ -50,6 +56,9 @@ namespace dm.DYT.Data.Migrations
 
                     b.Property<int>("PriceETHMove");
 
+                    b.Property<decimal>("PriceETHPct")
+                        .HasColumnType("decimal(5, 4)");
+
                     b.Property<decimal>("PriceETHWeighted")
                         .HasColumnType("decimal(25, 18)");
 
@@ -57,6 +66,9 @@ namespace dm.DYT.Data.Migrations
                         .HasColumnType("decimal(9, 4)");
 
                     b.Property<int>("PriceUSDMove");
+
+                    b.Property<decimal>("PriceUSDPct")
+                        .HasColumnType("decimal(5, 4)");
 
                     b.Property<decimal>("PriceUSDWeighted")
                         .HasColumnType("decimal(9, 4)");

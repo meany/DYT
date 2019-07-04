@@ -84,10 +84,10 @@ namespace dm.DYT.DiscordBot.Modules
                         .OrderByDescending(x => x.Date)
                         .FirstAsync()
                         .ConfigureAwait(false);
-                    var price = await db.Prices
+                    var prices = await db.Prices
                         .AsNoTracking()
-                        .OrderByDescending(x => x.Date)
-                        .FirstAsync()
+                        .Where(x => x.Group == stat.Group)
+                        .ToListAsync()
                         .ConfigureAwait(false);
 
                     var title = $"Current Price and Statistics";
@@ -98,12 +98,12 @@ namespace dm.DYT.DiscordBot.Modules
                         author.WithName(title);
                     })
                     .WithDescription($"**{stat.BurnLast24H.FormatDyt()} DYT** have been burned in the last 24 hours! {dynamite}")
-                    .AddField($"— Market (ForkDelta)", "```ml\n" +
-                        $"Price/USD:   ${price.PriceUSD.FormatUsd()}\n" +
-                        $"Price/BTC:   ₿{price.PriceBTC.FormatBtc()}\n" +
-                        $"Price/ETH:   Ξ{price.PriceETH.FormatDyt(false)}\n" +
-                        $"Market Cap:  ${price.MarketCapUSD.FormatLarge()}\n" +
-                        $"Volume/24H:  ${price.VolumeUSD.FormatLarge()}" +
+                    .AddField($"— Market (Weighted Average)", "```ml\n" +
+                        $"Price/USD:   ${prices.Sum(x => x.PriceUSDWeighted).FormatUsd()}\n" +
+                        $"Price/BTC:   ₿{prices.Sum(x => x.PriceBTCWeighted).FormatBtc()}\n" +
+                        $"Price/ETH:   Ξ{prices.Sum(x => x.PriceETHWeighted).FormatDyt(false)}\n" +
+                        $"Market Cap:  ${prices.Sum(x => x.MarketCapUSDWeighted).FormatLarge()}\n" +
+                        $"Volume/24H:  ${prices.Sum(x => x.VolumeUSD).FormatLarge()}" +
                         "```")
                     .AddField($"— Statistics (DYT)", "```ml\n" +
                         $"Transactions:   {stat.Transactions.Format()}\n" +
@@ -115,7 +115,7 @@ namespace dm.DYT.DiscordBot.Modules
                         "```")
                     .WithFooter(footer =>
                     {
-                        footer.WithText($"{price.Date.ToDate()}. Powered by Etherscan.io APIs.");
+                        footer.WithText($"{prices.Last().Date.ToDate()}. Powered by Etherscan.io APIs.");
                     });
 
                     await Discord.ReplyAsync(Context, output, deleteUserMessage: false).ConfigureAwait(false);

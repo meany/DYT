@@ -2,7 +2,7 @@
   "BotHelp": true,
   "BotName": "<NICK>",
   "BotPlaying": "<PLAYING>",
-  "BotPrefix": ".",
+  "BotPrefix": "+",
   "BotToken": "<TOKEN>",
   "ChannelIds": [],
   "EmoteGood": "✅",

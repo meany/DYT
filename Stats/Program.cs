@@ -96,6 +96,7 @@ namespace dm.DYT.Stats
                     BurnAvgDay = burnAvg.ToEth(),
                     Circulation = circulation.ToEth(),
                     Date = DateTime.UtcNow,
+                    Group = Guid.NewGuid(),
                     Supply = supply.ToEth(),
                     Transactions = totalTxs
                 };
@@ -128,7 +129,7 @@ namespace dm.DYT.Stats
 
                 while (supply == null || fund == null || fund2 == null || fund3 == null || esTxs == null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
             }
             catch (Exception ex)

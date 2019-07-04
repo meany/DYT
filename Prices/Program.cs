@@ -32,8 +32,13 @@ namespace dm.DYT.Prices
         private EsPriceResult esPrice;
         private ManualResetEvent mreMarket = new ManualResetEvent(false);
         private PureWebSocket ws;
-        private decimal mktPrice;
-        private decimal mktVolume;
+        private decimal mktPriceFdEth;
+        private decimal mktVolumeFdEth;
+
+        private BrTicker brTicker;
+        private BrStats brStats;
+        private decimal mktPriceBrEth;
+        private decimal mktVolumeBrEth;
 
         public static void Main(string[] args)
             => new Program().MainAsync(args).GetAwaiter().GetResult();
@@ -70,32 +75,82 @@ namespace dm.DYT.Prices
         {
             try
             {
-                log.Info("Getting Etherscan info");
-                await GetInfo();
-                log.Info("Getting market data");
-                GetMarketDataAsync();
-
+                log.Info("Getting info");
                 var stat = db.Stats
                     .AsNoTracking()
                     .OrderByDescending(x => x.Date)
                     .FirstOrDefault();
 
-                decimal priceBtc = mktPrice * decimal.Parse(esPrice.EthBtc);
-                decimal priceUsd = mktPrice * decimal.Parse(esPrice.EthUsd);
-                int mktCapUsd = int.Parse(Math.Round(priceUsd * stat.Circulation).ToString());
-                int volumeUsd = int.Parse(Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolume).ToString());
+                await GetInfo();
 
-                var item = new Price
+                // market data: ForkDelta
+                decimal priceBtcFd = mktPriceFdEth * decimal.Parse(esPrice.EthBtc);
+                decimal priceUsdFd = mktPriceFdEth * decimal.Parse(esPrice.EthUsd);
+                int mktCapUsdFd = (int)Math.Round(priceUsdFd * stat.Circulation);
+                int volumeUsdFd = (int)Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolumeFdEth);
+
+                // market data: BambooRelay
+                decimal priceBtcBr = mktPriceBrEth * decimal.Parse(esPrice.EthBtc);
+                decimal priceUsdBr = mktPriceBrEth * decimal.Parse(esPrice.EthUsd);
+                int mktCapUsdBr = (int)Math.Round(priceUsdBr * stat.Circulation);
+                int volumeUsdBr = (int)Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolumeBrEth);
+
+                // totals
+                int volumeTotal = volumeUsdFd + volumeUsdBr;
+                decimal volumePctFd = (decimal)volumeUsdFd / volumeTotal;
+                decimal volumePctBr = (decimal)volumeUsdBr / volumeTotal;
+
+                int mktCapTotal = mktCapUsdFd + mktCapUsdBr;
+                int mktCapWtdFd = (int)Math.Round(mktCapUsdFd * volumePctFd);
+                int mktCapWtdBr = (int)Math.Round(mktCapUsdBr * volumePctBr);
+                
+                // prices
+                decimal priceUsdWtdFd = priceUsdFd * volumePctFd;
+                decimal priceUsdWtdBr = priceUsdBr * volumePctBr;
+                decimal priceEthWtdFd = mktPriceFdEth * volumePctFd;
+                decimal priceEthWtdBr = mktPriceBrEth * volumePctBr;
+                decimal priceBtcWtdFd = priceBtcFd * volumePctFd;
+                decimal priceBtcWtdBr = priceBtcBr * volumePctBr;
+
+                var item1 = new Price
                 {
+                    Base = PriceBase.Ethereum,
                     Date = DateTime.UtcNow,
-                    MarketCapUSD = mktCapUsd,
-                    PriceBTC = priceBtc,
-                    PriceETH = mktPrice,
-                    PriceUSD = priceUsd,
-                    VolumeUSD = volumeUsd
+                    Group = stat.Group,
+                    MarketCapUSD = mktCapUsdFd,
+                    MarketCapUSDWeighted = mktCapWtdFd,
+                    PriceBTC = priceBtcFd,
+                    PriceBTCWeighted = priceBtcWtdFd,
+                    PriceETH = mktPriceFdEth,
+                    PriceETHWeighted = priceEthWtdFd,
+                    PriceUSD = priceUsdFd,
+                    PriceUSDWeighted = priceUsdWtdFd,
+                    Source = PriceSource.ForkDelta,
+                    VolumeUSD = volumeUsdFd,
+                    VolumeUSDPct = volumePctFd,
                 };
 
-                db.Add(item);
+                db.Add(item1);
+
+                var item2 = new Price
+                {
+                    Base = PriceBase.Ethereum,
+                    Date = DateTime.UtcNow,
+                    Group = stat.Group,
+                    MarketCapUSD = mktCapUsdBr,
+                    MarketCapUSDWeighted = mktCapWtdBr,
+                    PriceBTC = priceBtcBr,
+                    PriceBTCWeighted = priceBtcWtdBr,
+                    PriceETH = mktPriceBrEth,
+                    PriceETHWeighted = priceEthWtdBr,
+                    PriceUSD = priceUsdBr,
+                    PriceUSDWeighted = priceUsdWtdBr,
+                    Source = PriceSource.BambooRelay,
+                    VolumeUSD = volumeUsdBr,
+                    VolumeUSDPct = volumePctBr,
+                };
+
+                db.Add(item2);
 
                 log.Info("Saving prices to database");
                 db.SaveChanges();
@@ -112,11 +167,15 @@ namespace dm.DYT.Prices
             {
                 var client = new RestClient("https://api.etherscan.io");
                 GetPrices(client);
-                Thread.Sleep(200);
 
-                while (esPrice == null)
+                GetForkDelta();
+
+                var client2 = new RestClient("https://rest.bamboorelay.com");
+                GetBambooRelay(client2);
+
+                while (esPrice == null || brTicker == null || brStats == null)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
             }
             catch (Exception ex)
@@ -139,7 +198,7 @@ namespace dm.DYT.Prices
             });
         }
 
-        private void GetMarketDataAsync()
+        private void GetForkDelta()
         {
             var opts = new PureWebSocketOptions
             {
@@ -167,14 +226,30 @@ namespace dm.DYT.Prices
                 var lastTrade = market.Trades
                     .OrderByDescending(x => x.Date)
                     .FirstOrDefault();
-                mktPrice = decimal.Parse(lastTrade.Price);
+                mktPriceFdEth = decimal.Parse(lastTrade.Price);
 
-                mktVolume = market.Trades
+                mktVolumeFdEth = market.Trades
                     .Where(x => x.Date >= DateTime.UtcNow.AddDays(-1))
                     .Sum(x => decimal.Parse(x.AmountBase, NumberStyles.Float));
 
+                log.Info($"GetForkDelta: OK");
                 mreMarket.Set();
             }
+        }
+
+        private void GetBambooRelay(RestClient client)
+        {
+            var req = new RestRequest("main/0x/markets/DYT-WETH/stats", Method.GET);
+            req.AddParameter("include", "ticker");
+            client.ExecuteAsync<BrResult>(req, res =>
+            {
+                brStats = res.Data.Stats;
+                brTicker = res.Data.Ticker;
+                mktVolumeBrEth = decimal.Parse(brStats.Volume24Hour);
+                mktPriceBrEth = decimal.Parse(brTicker.Price);
+            });
+
+            log.Info($"GetBambooRelay: OK");
         }
     }
 }

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Args;
 
 namespace dm.DYT.TelegramBot
 {
@@ -57,42 +58,58 @@ namespace dm.DYT.TelegramBot
             try
             {
                 botClient = new TelegramBotClient(config.BotToken);
-                log.Info("Bot connected.");
 
-                var stat = await db.Stats
-                    .AsNoTracking()
-                    .OrderByDescending(x => x.Date)
-                    .FirstOrDefaultAsync()
-                    .ConfigureAwait(false);
-                var price = await db.Prices
-                    .AsNoTracking()
-                    .OrderByDescending(x => x.Date)
-                    .FirstOrDefaultAsync()
-                    .ConfigureAwait(false);
+                log.Info($"Bot connected");
 
-                string text = $"🔥 {stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
-                    $"🔥 {stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
-                    $"🤝 Transactions: {stat.Transactions.Format()}\n" +
-                    $"📃 Supply: {stat.Supply.FormatDyt()} $DYT\n" +
-                    $"🔁 Circulation: {stat.Circulation.FormatDyt()} $DYT\n" +
-                    $"🔥 Burned: {stat.Burned.FormatDyt()} (Rate: {stat.BurnAvgDay.FormatDyt()}/day)\n" +
-                    $"🤑 Price/USD: ${price.PriceUSD.FormatUsd()}\n" +
-                    $"🤑 Price/BTC: ₿{price.PriceBTC.FormatBtc()}\n" +
-                    $"🤑 Price/ETH: Ξ{price.PriceETH.FormatEth()}\n" +
-                    $"📈 Market Cap: ${price.MarketCapUSD.FormatLarge()}\n" +
-                    $"💸 Volume: ${price.VolumeUSD.FormatLarge()}";
+                if (config.ChatId == 0)
+                {
+                    log.Info("ChatId = 0, waiting for messages");
+                    botClient.OnMessage += BotClient_OnMessage;
+                    botClient.StartReceiving();
+                    await Task.Delay(-1).ConfigureAwait(false);
+                }
+                else
+                {
+                    var stat = await db.Stats
+                        .AsNoTracking()
+                        .OrderByDescending(x => x.Date)
+                        .FirstOrDefaultAsync()
+                        .ConfigureAwait(false);
+                    var prices = await db.Prices
+                        .AsNoTracking()
+                        .Where(x => x.Group == stat.Group)
+                        .ToListAsync()
+                        .ConfigureAwait(false);
 
-                await botClient.SendTextMessageAsync(
-                  chatId: config.ChatId,
-                  text: text
-                );
+                    string text = $"🔥 {stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
+                        $"🔥 {stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
+                        $"🤝 Transactions: {stat.Transactions.Format()}\n" +
+                        $"📃 Supply: {stat.Supply.FormatDyt()} $DYT\n" +
+                        $"🔁 Circulation: {stat.Circulation.FormatDyt()} $DYT\n" +
+                        $"🔥 Burned: {stat.Burned.FormatDyt()} (Rate: {stat.BurnAvgDay.FormatDyt()}/day)\n" +
+                        $"🤑 Price/USD: ${prices.Sum(x => x.PriceUSDWeighted).FormatUsd()}\n" +
+                        $"🤑 Price/BTC: ₿{prices.Sum(x => x.PriceBTCWeighted).FormatBtc()}\n" +
+                        $"🤑 Price/ETH: Ξ{prices.Sum(x => x.PriceETHWeighted).FormatEth()}\n" +
+                        $"📈 Market Cap: ${prices.Sum(x => x.MarketCapUSDWeighted).FormatLarge()}\n" +
+                        $"💸 Volume: ${prices.Sum(x => x.VolumeUSD).FormatLarge()}";
 
-                log.Info("Stats sent.");
+                    await botClient.SendTextMessageAsync(
+                      chatId: config.ChatId,
+                      text: text
+                    );
+
+                    log.Info("Stats sent");
+                }
             }
             catch (Exception ex)
             {
                 log.Error(ex);
             }
+        }
+
+        private void BotClient_OnMessage(object sender, MessageEventArgs e)
+        {
+            log.Info($"ChatId: {e.Message.Chat.Id}, Message: {e.Message.Text}");
         }
     }
 }

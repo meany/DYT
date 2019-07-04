@@ -34,16 +34,6 @@ namespace dm.DYT.Common
             return (neg) ? $"-{r}" : r;
         }
 
-        public static string GetVersion()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            string fullV = fvi.FileVersion;
-            string patchV = fullV.Substring(0, fullV.LastIndexOf('.')).TrimEnd(".0");
-            string buildV = fullV.Substring(fullV.LastIndexOf('.') + 1);
-            return $"{patchV} (build {buildV})";
-        }
-
         public static bool StartDotNetProcess(string directory, string fileName, string[] args)
         {
             var proc = new Process();
