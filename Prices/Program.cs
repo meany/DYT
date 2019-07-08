@@ -40,6 +40,10 @@ namespace dm.DYT.Prices
         private decimal mktPriceBrEth;
         private decimal mktVolumeBrEth;
 
+        private TxbResult txbResult;
+        private decimal mktPriceTxbEth;
+        private decimal mktVolumeTxbEth;
+
         public static void Main(string[] args)
             => new Program().MainAsync(args).GetAwaiter().GetResult();
 
@@ -95,22 +99,33 @@ namespace dm.DYT.Prices
                 int mktCapUsdBr = (int)Math.Round(priceUsdBr * stat.Circulation);
                 int volumeUsdBr = (int)Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolumeBrEth);
 
+                // market data: TxBit
+                decimal priceBtcTxb = mktPriceTxbEth * decimal.Parse(esPrice.EthBtc);
+                decimal priceUsdTxb = mktPriceTxbEth * decimal.Parse(esPrice.EthUsd);
+                int mktCapUsdTxb = (int)Math.Round(priceUsdTxb * stat.Circulation);
+                int volumeUsdTxb = (int)Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolumeTxbEth);
+
                 // totals
-                int volumeTotal = volumeUsdFd + volumeUsdBr;
+                int volumeTotal = volumeUsdFd + volumeUsdBr + volumeUsdTxb;
                 decimal volumePctFd = (decimal)volumeUsdFd / volumeTotal;
                 decimal volumePctBr = (decimal)volumeUsdBr / volumeTotal;
+                decimal volumePctTxb = (decimal)volumeUsdTxb / volumeTotal;
 
-                int mktCapTotal = mktCapUsdFd + mktCapUsdBr;
+                int mktCapTotal = mktCapUsdFd + mktCapUsdBr + mktCapUsdTxb;
                 int mktCapWtdFd = (int)Math.Round(mktCapUsdFd * volumePctFd);
                 int mktCapWtdBr = (int)Math.Round(mktCapUsdBr * volumePctBr);
-                
+                int mktCapWtdTxb = (int)Math.Round(mktCapUsdTxb * volumePctTxb);
+
                 // prices
                 decimal priceUsdWtdFd = priceUsdFd * volumePctFd;
                 decimal priceUsdWtdBr = priceUsdBr * volumePctBr;
+                decimal priceUsdWtdTxb = priceUsdTxb * volumePctTxb;
                 decimal priceEthWtdFd = mktPriceFdEth * volumePctFd;
                 decimal priceEthWtdBr = mktPriceBrEth * volumePctBr;
+                decimal priceEthWtdTxb = mktPriceTxbEth * volumePctTxb;
                 decimal priceBtcWtdFd = priceBtcFd * volumePctFd;
                 decimal priceBtcWtdBr = priceBtcBr * volumePctBr;
+                decimal priceBtcWtdTxb = priceBtcTxb * volumePctTxb;
 
                 var item1 = new Price
                 {
@@ -152,6 +167,26 @@ namespace dm.DYT.Prices
 
                 db.Add(item2);
 
+                var item3 = new Price
+                {
+                    Base = PriceBase.Ethereum,
+                    Date = DateTime.UtcNow,
+                    Group = stat.Group,
+                    MarketCapUSD = mktCapUsdTxb,
+                    MarketCapUSDWeighted = mktCapWtdTxb,
+                    PriceBTC = priceBtcTxb,
+                    PriceBTCWeighted = priceBtcWtdTxb,
+                    PriceETH = mktPriceTxbEth,
+                    PriceETHWeighted = priceEthWtdTxb,
+                    PriceUSD = priceUsdTxb,
+                    PriceUSDWeighted = priceUsdWtdTxb,
+                    Source = PriceSource.TxBit,
+                    VolumeUSD = volumeUsdTxb,
+                    VolumeUSDPct = volumePctTxb,
+                };
+
+                db.Add(item3);
+
                 log.Info("Saving prices to database");
                 db.SaveChanges();
             }
@@ -173,7 +208,10 @@ namespace dm.DYT.Prices
                 var client2 = new RestClient("https://rest.bamboorelay.com");
                 GetBambooRelay(client2);
 
-                while (esPrice == null || brTicker == null || brStats == null)
+                var client3 = new RestClient("https://api.txbit.io");
+                GetTxBit(client3);
+
+                while (esPrice == null || brTicker == null || brStats == null || txbResult == null)
                 {
                     Thread.Sleep(500);
                 }
@@ -250,6 +288,20 @@ namespace dm.DYT.Prices
             });
 
             log.Info($"GetBambooRelay: OK");
+        }
+
+        private void GetTxBit(RestClient client)
+        {
+            var req = new RestRequest("api/public/getmarketsummary", Method.GET);
+            req.AddParameter("market", "DYT/ETH");
+            client.ExecuteAsync<TxbMarket>(req, res =>
+            {
+                txbResult = res.Data.Result;
+                mktVolumeTxbEth = txbResult.BaseVolume;
+                mktPriceTxbEth = txbResult.Last;
+            });
+
+            log.Info($"GetTxBit: OK");
         }
     }
 }

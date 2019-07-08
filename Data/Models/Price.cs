@@ -8,7 +8,8 @@ namespace dm.DYT.Data.Models
     public enum PriceSource
     {
         ForkDelta = 0,
-        BambooRelay = 1
+        BambooRelay = 1,
+        TxBit = 2
     }
 
     public enum PriceBase
