@@ -9,8 +9,8 @@ namespace dm.DYT.Data
     public class AppDbContext : DbContext
     {
         public DbSet<Price> Prices { get; set; }
-        public DbSet<Stat> Stats { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<Stat> Stats { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -19,6 +19,16 @@ namespace dm.DYT.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Price>()
+                .HasIndex(x => x.Group);
+            modelBuilder.Entity<Request>()
+                .HasIndex(x => x.Date);
+            modelBuilder.Entity<Request>()
+                .HasIndex(x => new { x.Response, x.Type });
+            modelBuilder.Entity<Stat>()
+                .HasIndex(x => x.Date);
+            modelBuilder.Entity<Transaction>()
+                .HasIndex(x => x.TimeStamp);
         }
     }
 

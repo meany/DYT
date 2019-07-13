@@ -10,12 +10,9 @@ using NLog;
 using PureWebSockets;
 using RestSharp;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +27,7 @@ namespace dm.DYT.Prices
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         private EsPriceResult esPrice;
+
         private ManualResetEvent mreMarket = new ManualResetEvent(false);
         private PureWebSocket ws;
         private decimal mktPriceFdEth;
@@ -90,7 +88,11 @@ namespace dm.DYT.Prices
                 // market data: ForkDelta
                 decimal priceBtcFd = mktPriceFdEth * decimal.Parse(esPrice.EthBtc);
                 decimal priceUsdFd = mktPriceFdEth * decimal.Parse(esPrice.EthUsd);
-                int mktCapUsdFd = (int)Math.Round(priceUsdFd * stat.Circulation);
+                int mktCapUsdFd = 0;
+                if (mktPriceFdEth < 2147)
+                {
+                    mktCapUsdFd = (int)Math.Round(priceUsdFd * stat.Circulation);
+                }
                 int volumeUsdFd = (int)Math.Round(decimal.Parse(esPrice.EthUsd) * mktVolumeFdEth);
 
                 // market data: BambooRelay
@@ -238,16 +240,27 @@ namespace dm.DYT.Prices
 
         private void GetForkDelta()
         {
-            var opts = new PureWebSocketOptions
+            try
             {
-                SendCacheItemTimeout = TimeSpan.FromSeconds(60)
-            };
-            ws = new PureWebSocket("wss://api.forkdelta.app/socket.io/?EIO=3&transport=websocket", opts);
-            ws.OnMessage += Ws_OnMessage;
-            ws.Connect();
+                var opts = new PureWebSocketOptions
+                {
+                    SendCacheItemTimeout = TimeSpan.FromSeconds(60)
+                };
+                ws = new PureWebSocket("wss://api.forkdelta.app/socket.io/?EIO=3&transport=websocket", opts);
+                ws.OnMessage += Ws_OnMessage;
+                ws.Connect();
 
-            mreMarket.WaitOne();
-            ws.Dispose();
+                mreMarket.WaitOne();
+                ws.Dispose();
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+                log.Info($"GetForkDelta: Failed");
+                mktPriceFdEth = 0;
+                mktVolumeFdEth = 0;
+                mreMarket.Set();
+            }
         }
 
         private void Ws_OnMessage(string message)

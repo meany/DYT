@@ -77,9 +77,10 @@ namespace dm.DYT.Stats
                 log.Info("Inserting newest transactions");
                 InsertNewTxs();
 
-                dbTxs = db.Transactions
+                dbTxs = await db.Transactions
                     .AsNoTracking()
-                    .ToList();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
                 int totalTxs = (dbTxs.Count - 1) / 2;
 
                 var totalBurned = GetBurned();
