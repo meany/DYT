@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TelegramBot", "TelegramBot\
 		{D0FA8DF0-25A7-49F7-A1AE-EEA7595EC529} = {D0FA8DF0-25A7-49F7-A1AE-EEA7595EC529}
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api", "Api\Api.csproj", "{E592835F-27F6-4BA1-987A-0AEE3756D02B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{E957CC64-4BB9-4A5C-A360-95324CE457AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E957CC64-4BB9-4A5C-A360-95324CE457AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E957CC64-4BB9-4A5C-A360-95324CE457AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E592835F-27F6-4BA1-987A-0AEE3756D02B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E592835F-27F6-4BA1-987A-0AEE3756D02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E592835F-27F6-4BA1-987A-0AEE3756D02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E592835F-27F6-4BA1-987A-0AEE3756D02B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

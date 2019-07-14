@@ -70,28 +70,19 @@ namespace dm.DYT.TelegramBot
                 }
                 else
                 {
-                    var stat = await db.Stats
-                        .AsNoTracking()
-                        .OrderByDescending(x => x.Date)
-                        .FirstOrDefaultAsync()
-                        .ConfigureAwait(false);
-                    var prices = await db.Prices
-                        .AsNoTracking()
-                        .Where(x => x.Group == stat.Group)
-                        .ToListAsync()
-                        .ConfigureAwait(false);
+                    var item = await Data.Common.GetStats(db).ConfigureAwait(false);
 
-                    string text = $"🔥 {stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
-                        $"🔥 {stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
-                        $"🤝 Transactions: {stat.Transactions.Format()}\n" +
-                        $"📃 Supply: {stat.Supply.FormatDyt()} $DYT\n" +
-                        $"🔁 Circulation: {stat.Circulation.FormatDyt()} $DYT\n" +
-                        $"🔥 Burned: {stat.Burned.FormatDyt()} (Rate: {stat.BurnAvgDay.FormatDyt()}/day)\n" +
-                        $"🤑 Price/USD: ${prices.Sum(x => x.PriceUSDWeighted).FormatUsd()}\n" +
-                        $"🤑 Price/BTC: ₿{prices.Sum(x => x.PriceBTCWeighted).FormatBtc()}\n" +
-                        $"🤑 Price/ETH: Ξ{prices.Sum(x => x.PriceETHWeighted).FormatEth()}\n" +
-                        $"📈 Market Cap: ${prices.Sum(x => x.MarketCapUSDWeighted).FormatLarge()}\n" +
-                        $"💸 Volume: ${prices.Sum(x => x.VolumeUSD).FormatLarge()}";
+                    string text = $"🔥 {item.Stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
+                        $"🔥 {item.Stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
+                        $"🤝 Transactions: {item.Stat.Transactions.Format()}\n" +
+                        $"📃 Supply: {item.Stat.Supply.FormatDyt()} $DYT\n" +
+                        $"🔁 Circulation: {item.Stat.Circulation.FormatDyt()} $DYT\n" +
+                        $"🔥 Burned: {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
+                        $"🤑 Price/USD: ${item.WeightedPrice.PriceUSD.FormatUsd()}\n" +
+                        $"🤑 Price/BTC: ₿{item.WeightedPrice.PriceBTC.FormatBtc()}\n" +
+                        $"🤑 Price/ETH: Ξ{item.WeightedPrice.PriceETH.FormatEth()}\n" +
+                        $"📈 Market Cap: ${item.WeightedPrice.MarketCapUSD.FormatLarge()}\n" +
+                        $"💸 Volume: ${item.WeightedPrice.VolumeUSD.FormatLarge()}";
 
                     await botClient.SendTextMessageAsync(
                       chatId: config.ChatId,

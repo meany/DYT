@@ -44,6 +44,7 @@ namespace dm.DYT.DiscordBot.Modules
 
                 using (var a = Context.Channel.EnterTypingState())
                 {
+                    log.Info("Requesting prices and stats");
 
                     var newReq = new Request
                     {
@@ -52,7 +53,6 @@ namespace dm.DYT.DiscordBot.Modules
                     };
 
                     var req = await db.Requests
-                        .AsNoTracking()
                         .Where(x => x.Type == RequestType.Price
                             && x.Response == RequestResponse.OK)
                         .OrderByDescending(x => x.Date)
@@ -71,6 +71,7 @@ namespace dm.DYT.DiscordBot.Modules
                             newReq.Date = DateTime.UtcNow;
                             db.Add(newReq);
                             await db.SaveChangesAsync().ConfigureAwait(false);
+                            log.Info("Request rate limited");
 
                             return;
                         }
@@ -79,16 +80,9 @@ namespace dm.DYT.DiscordBot.Modules
                     var emotes = new Emotes(Context);
                     var dynamite = await emotes.Get(config.EmoteDynamite).ConfigureAwait(false);
 
-                    var stat = await db.Stats
-                        .AsNoTracking()
-                        .OrderByDescending(x => x.Date)
-                        .FirstAsync()
-                        .ConfigureAwait(false);
-                    var prices = await db.Prices
-                        .AsNoTracking()
-                        .Where(x => x.Group == stat.Group)
-                        .ToListAsync()
-                        .ConfigureAwait(false);
+                    var item = await Data.Common.GetStats(db).ConfigureAwait(false);
+
+                    log.Debug($"Prices for stat group {item.Stat.Group} not found");
 
                     var title = $"Current Price and Statistics";
                     var output = new EmbedBuilder();
@@ -97,25 +91,25 @@ namespace dm.DYT.DiscordBot.Modules
                     {
                         author.WithName(title);
                     })
-                    .WithDescription($"**{stat.BurnLast24H.FormatDyt()} DYT** have been burned in the last 24 hours! {dynamite}")
+                    .WithDescription($"**{item.Stat.BurnLast24H.FormatDyt()} DYT** have been burned in the last 24 hours! {dynamite}")
                     .AddField($"— Market (Weighted Average)", "```ml\n" +
-                        $"Price/USD:   ${prices.Sum(x => x.PriceUSDWeighted).FormatUsd()}\n" +
-                        $"Price/BTC:   ₿{prices.Sum(x => x.PriceBTCWeighted).FormatBtc()}\n" +
-                        $"Price/ETH:   Ξ{prices.Sum(x => x.PriceETHWeighted).FormatDyt(false)}\n" +
-                        $"Market Cap:  ${prices.Sum(x => x.MarketCapUSDWeighted).FormatLarge()}\n" +
-                        $"Volume/24H:  ${prices.Sum(x => x.VolumeUSD).FormatLarge()}" +
+                        $"Price/USD:   ${item.WeightedPrice.PriceUSD.FormatUsd()}\n" +
+                        $"Price/BTC:   ₿{item.WeightedPrice.PriceBTC.FormatBtc()}\n" +
+                        $"Price/ETH:   Ξ{item.WeightedPrice.PriceETH.FormatDyt(false)}\n" +
+                        $"Market Cap:  ${item.WeightedPrice.MarketCapUSD.FormatLarge()}\n" +
+                        $"Volume/24H:  ${item.WeightedPrice.VolumeUSD.FormatLarge()}" +
                         "```")
                     .AddField($"— Statistics (DYT)", "```ml\n" +
-                        $"Transactions:   {stat.Transactions.Format()}\n" +
-                        $"Total Supply:   {stat.Supply.FormatDyt()}\n" +
-                        $"Circulation:    {stat.Circulation.FormatDyt()}\n" +
-                        $"Total Burned:   {stat.Burned.FormatDyt()} (Rate: {stat.BurnAvgDay.FormatDyt()}/day)\n" +
-                        $"Burn/Last/1H:   {stat.BurnLast1H.FormatDyt()}\n" +
-                        $"Burn/Last/24H:  {stat.BurnLast24H.FormatDyt()}" +
+                        $"Transactions:   {item.Stat.Transactions.Format()}\n" +
+                        $"Total Supply:   {item.Stat.Supply.FormatDyt()}\n" +
+                        $"Circulation:    {item.Stat.Circulation.FormatDyt()}\n" +
+                        $"Total Burned:   {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
+                        $"Burn/Last/1H:   {item.Stat.BurnLast1H.FormatDyt()}\n" +
+                        $"Burn/Last/24H:  {item.Stat.BurnLast24H.FormatDyt()}" +
                         "```")
                     .WithFooter(footer =>
                     {
-                        footer.WithText($"{prices.Last().Date.ToDate()}. Powered by Etherscan.io APIs.");
+                        footer.WithText($"{item.Prices.Last().Date.ToDate()}. Powered by Etherscan.io APIs.");
                     });
 
                     await Discord.ReplyAsync(Context, output, deleteUserMessage: false).ConfigureAwait(false);
@@ -124,6 +118,7 @@ namespace dm.DYT.DiscordBot.Modules
                     newReq.Date = DateTime.UtcNow;
                     db.Add(newReq);
                     await db.SaveChangesAsync().ConfigureAwait(false);
+                    log.Info("Prices and stats successfully sent");
                 }
             }
             catch (Exception ex)

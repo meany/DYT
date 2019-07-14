@@ -21,6 +21,8 @@ namespace dm.DYT.Data
         {
             modelBuilder.Entity<Price>()
                 .HasIndex(x => x.Group);
+            modelBuilder.Entity<Price>()
+                .HasIndex(x => x.Date);
             modelBuilder.Entity<Request>()
                 .HasIndex(x => x.Date);
             modelBuilder.Entity<Request>()

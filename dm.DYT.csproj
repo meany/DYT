@@ -5,16 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Api\**" />
     <Compile Remove="Data\**" />
     <Compile Remove="DiscordBot\**" />
     <Compile Remove="Prices\**" />
     <Compile Remove="Stats\**" />
     <Compile Remove="TelegramBot\**" />
+    <EmbeddedResource Remove="Api\**" />
     <EmbeddedResource Remove="Data\**" />
     <EmbeddedResource Remove="DiscordBot\**" />
     <EmbeddedResource Remove="Prices\**" />
     <EmbeddedResource Remove="Stats\**" />
     <EmbeddedResource Remove="TelegramBot\**" />
+    <None Remove="Api\**" />
     <None Remove="Data\**" />
     <None Remove="DiscordBot\**" />
     <None Remove="Prices\**" />

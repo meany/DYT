@@ -89,7 +89,7 @@ namespace dm.DYT.Prices
                 decimal priceBtcFd = mktPriceFdEth * decimal.Parse(esPrice.EthBtc);
                 decimal priceUsdFd = mktPriceFdEth * decimal.Parse(esPrice.EthUsd);
                 int mktCapUsdFd = 0;
-                if (mktPriceFdEth < 2147)
+                if (priceUsdFd < 2147)
                 {
                     mktCapUsdFd = (int)Math.Round(priceUsdFd * stat.Circulation);
                 }
