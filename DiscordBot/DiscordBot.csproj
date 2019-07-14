@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>dm.DYT.DiscordBot</RootNamespace>
-    <Version>1.18.0.97</Version>
+    <Version>1.20.0.97</Version>
     <AssemblyName>dbot</AssemblyName>
   </PropertyGroup>
 
