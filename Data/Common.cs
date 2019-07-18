@@ -20,35 +20,37 @@ namespace dm.DYT.Data
                 .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
             vm.Stat = stat;
-            var prices = await db.Prices
+            var prices = await db.Prices360
                 .AsNoTracking()
                 .Where(x => x.Group == stat.Group)
-                .ToListAsync()
+                //.ToListAsync()
+                .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
-            vm.Prices = prices;
+            vm.Price = prices;
 
-            if (!prices.Any())
-            {
-                vm.IsOldPrice = true;
-                prices = await db.Prices
-                    .AsNoTracking()
-                    .OrderByDescending(x => x.Date)
-                    .Take(3)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
-                vm.Prices = prices;
-            }
+            //if (!prices.Any())
+            //{
+            //    vm.IsOldPrice = true;
+            //    prices = await db.Prices
+            //        .AsNoTracking()
+            //        .OrderByDescending(x => x.Date)
+            //        .Take(3)
+            //        .ToListAsync()
+            //        .ConfigureAwait(false);
+            //    vm.Prices = prices;
+            //}
 
-            var wprice = new ViewModels.WeightedPrice
-            {
-                PriceUSD = prices.Sum(x => x.PriceUSDWeighted),
-                PriceBTC = prices.Sum(x => x.PriceBTCWeighted),
-                PriceETH = prices.Sum(x => x.PriceETHWeighted),
-                MarketCapUSD = prices.Sum(x => x.MarketCapUSDWeighted),
-                VolumeUSD = prices.Sum(x => x.VolumeUSD)
-            };
+            //var wprice = new ViewModels.WeightedPrice
+            //{
+            //    PriceUSD = prices.Sum(x => x.PriceUSDWeighted),
+            //    PriceBTC = prices.Sum(x => x.PriceBTCWeighted),
+            //    PriceETH = prices.Sum(x => x.PriceETHWeighted),
+            //    MarketCapUSD = prices.Sum(x => x.MarketCapUSDWeighted),
+            //    VolumeUSD = prices.Sum(x => x.VolumeUSD)
+            //};
 
-            vm.WeightedPrice = wprice;
+            //vm.WeightedPrice = wprice;
+
             return vm;
         }
     }

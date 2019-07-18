@@ -8,7 +8,7 @@ namespace dm.DYT.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<Price> Prices { get; set; }
+        public DbSet<Price360> Prices360 { get; set; }
         public DbSet<Request> Requests { get; set; }
         public DbSet<Stat> Stats { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -19,9 +19,9 @@ namespace dm.DYT.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Price>()
+            modelBuilder.Entity<Price360>()
                 .HasIndex(x => x.Group);
-            modelBuilder.Entity<Price>()
+            modelBuilder.Entity<Price360>()
                 .HasIndex(x => x.Date);
             modelBuilder.Entity<Request>()
                 .HasIndex(x => x.Date);

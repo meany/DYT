@@ -78,11 +78,11 @@ namespace dm.DYT.TelegramBot
                         $"📃 Supply: {item.Stat.Supply.FormatDyt()} $DYT\n" +
                         $"🔁 Circulation: {item.Stat.Circulation.FormatDyt()} $DYT\n" +
                         $"🔥 Burned: {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
-                        $"🤑 Price/USD: ${item.WeightedPrice.PriceUSD.FormatUsd()}\n" +
-                        $"🤑 Price/BTC: ₿{item.WeightedPrice.PriceBTC.FormatBtc()}\n" +
-                        $"🤑 Price/ETH: Ξ{item.WeightedPrice.PriceETH.FormatEth()}\n" +
-                        $"📈 Market Cap: ${item.WeightedPrice.MarketCapUSD.FormatLarge()}\n" +
-                        $"💸 Volume: ${item.WeightedPrice.VolumeUSD.FormatLarge()}";
+                        $"🤑 Price/USD: ${item.Price.PriceUSD.FormatUsd()}\n" +
+                        $"🤑 Price/BTC: ₿{item.Price.PriceBTC.FormatBtc()}\n" +
+                        $"🤑 Price/ETH: Ξ{item.Price.PriceETH.FormatEth()}\n" +
+                        $"📈 Market Cap: ${item.Price.MarketCapUSD.FormatLarge()}\n" +
+                        $"💸 Volume: ${item.Price.VolumeUSD.FormatLarge()}";
 
                     await botClient.SendTextMessageAsync(
                       chatId: config.ChatId,

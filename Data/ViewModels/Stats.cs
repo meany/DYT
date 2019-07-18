@@ -8,8 +8,7 @@ namespace dm.DYT.Data.ViewModels
     public class Stats
     {
         public Stat Stat { get; set; }
-        public WeightedPrice WeightedPrice { get; set; }
-        public List<Price> Prices { get; set; }
+        public Price360 Price { get; set; }
         public bool IsOldPrice { get; set; }
     }
 }

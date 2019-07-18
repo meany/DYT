@@ -93,11 +93,11 @@ namespace dm.DYT.DiscordBot.Modules
                     })
                     .WithDescription($"**{item.Stat.BurnLast24H.FormatDyt()} DYT** have been burned in the last 24 hours! {dynamite}")
                     .AddField($"— Market (Weighted Average)", "```ml\n" +
-                        $"Price/USD:   ${item.WeightedPrice.PriceUSD.FormatUsd()}\n" +
-                        $"Price/BTC:   ₿{item.WeightedPrice.PriceBTC.FormatBtc()}\n" +
-                        $"Price/ETH:   Ξ{item.WeightedPrice.PriceETH.FormatDyt(false)}\n" +
-                        $"Market Cap:  ${item.WeightedPrice.MarketCapUSD.FormatLarge()}\n" +
-                        $"Volume/24H:  ${item.WeightedPrice.VolumeUSD.FormatLarge()}" +
+                        $"Price/USD:   ${item.Price.PriceUSD.FormatUsd()}\n" +
+                        $"Price/BTC:   ₿{item.Price.PriceBTC.FormatBtc()}\n" +
+                        $"Price/ETH:   Ξ{item.Price.PriceETH.FormatDyt(false)}\n" +
+                        $"Market Cap:  ${item.Price.MarketCapUSD.FormatLarge()}\n" +
+                        $"Volume/24H:  ${item.Price.VolumeUSD.FormatLarge()}" +
                         "```")
                     .AddField($"— Statistics (DYT)", "```ml\n" +
                         $"Transactions:   {item.Stat.Transactions.Format()}\n" +
@@ -109,7 +109,7 @@ namespace dm.DYT.DiscordBot.Modules
                         "```")
                     .WithFooter(footer =>
                     {
-                        footer.WithText($"{item.Prices.Last().Date.ToDate()}. Powered by Etherscan.io APIs.");
+                        footer.WithText($"{item.Price.Date.ToDate()}. Powered by Etherscan.io & CoinGecko APIs.");
                     });
 
                     await Discord.ReplyAsync(Context, output, deleteUserMessage: false).ConfigureAwait(false);

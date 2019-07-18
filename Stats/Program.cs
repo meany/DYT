@@ -6,16 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using NLog;
-using PureWebSockets;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,7 +56,7 @@ namespace dm.DYT.Stats
 
                 db.Database.Migrate();
 
-                Start();
+                await Start();
             }
             catch (Exception ex)
             {
@@ -68,7 +64,7 @@ namespace dm.DYT.Stats
             }
         }
 
-        private async void Start()
+        private async Task Start()
         {
             try
             {
