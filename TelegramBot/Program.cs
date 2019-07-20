@@ -45,7 +45,7 @@ namespace dm.DYT.TelegramBot
                 db = services.GetService<AppDbContext>();
                 db.Database.Migrate();
 
-                await RunBot().ConfigureAwait(false);
+                await RunBot();
             }
             catch (Exception ex)
             {
@@ -70,7 +70,7 @@ namespace dm.DYT.TelegramBot
                 }
                 else
                 {
-                    var item = await Data.Common.GetStats(db).ConfigureAwait(false);
+                    var item = await Data.Common.GetStats(db);
 
                     string text = $"🔥 {item.Stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
                         $"🔥 {item.Stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +

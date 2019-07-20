@@ -20,25 +20,24 @@ namespace dm.DYT.Data
                 .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
             vm.Stat = stat;
-            var prices = await db.Prices360
+            var price = await db.Prices360
                 .AsNoTracking()
                 .Where(x => x.Group == stat.Group)
                 //.ToListAsync()
                 .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
-            vm.Price = prices;
+            vm.Price = price;
 
-            //if (!prices.Any())
-            //{
-            //    vm.IsOldPrice = true;
-            //    prices = await db.Prices
-            //        .AsNoTracking()
-            //        .OrderByDescending(x => x.Date)
-            //        .Take(3)
-            //        .ToListAsync()
-            //        .ConfigureAwait(false);
-            //    vm.Prices = prices;
-            //}
+            if (price == null)
+            {
+                vm.IsOldPrice = true;
+                price = await db.Prices360
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.Date)
+                    .FirstOrDefaultAsync()
+                    .ConfigureAwait(false);
+                vm.Price = price;
+            }
 
             //var wprice = new ViewModels.WeightedPrice
             //{

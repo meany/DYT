@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace dm.DYT.Data.Models
@@ -14,8 +15,10 @@ namespace dm.DYT.Data.Models
 
     public class Stat
     {
+        [IgnoreDataMember]
         public int StatId { get; set; }
         public DateTime Date { get; set; }
+        [IgnoreDataMember]
         public Guid Group { get; set; }
         public int Transactions { get; set; }
         [Column(TypeName = "decimal(9, 4)")]

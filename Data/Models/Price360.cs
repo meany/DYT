@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace dm.DYT.Data.Models
@@ -12,17 +13,20 @@ namespace dm.DYT.Data.Models
 
     public class Price360
     {
+        [IgnoreDataMember]
         public int Price360Id { get; set; }
         public DateTime Date { get; set; }
+        [IgnoreDataMember]
         public Price360Source Source { get; set; }
+        [IgnoreDataMember]
         public Guid Group { get; set; }
 
-        [Column(TypeName = "decimal(9, 4)")]
+        [Column(TypeName = "decimal(11, 6)")]
         public decimal PriceUSD { get; set; }
         public Change PriceUSDChange { get; set; }
         [Column(TypeName = "decimal(10, 8)")]
         public decimal PriceUSDChangePct { get; set; }
-        [Column(TypeName = "decimal(9, 4)")]
+        [Column(TypeName = "decimal(16, 8)")]
         public decimal PriceETH { get; set; }
         public Change PriceETHChange { get; set; }
         [Column(TypeName = "decimal(10, 8)")]
