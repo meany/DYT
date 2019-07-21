@@ -10,8 +10,10 @@ using NLog;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Cache;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +29,7 @@ namespace dm.DYT.Stats
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         private BigInteger supply;
+        private BigInteger burned;
         private BigInteger fund;
         private BigInteger fund2;
         private BigInteger fund3;
@@ -68,26 +71,25 @@ namespace dm.DYT.Stats
         {
             try
             {
-                log.Info("Getting Etherscan info");
+                log.Info("Getting Etherscan/Ethplorer info");
                 await GetInfo();
-                log.Info("Inserting newest transactions");
-                InsertNewTxs();
+                await InsertNewTxs();
 
-                dbTxs = await db.Transactions
+                dbTxs = db.Transactions
                     .AsNoTracking()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToList();
                 int totalTxs = (dbTxs.Count - 1) / 2;
 
-                var totalBurned = GetBurned();
+                GetBurned();
                 var burn1 = GetBurnedHours(1);
                 var burn24 = GetBurnedHours(24);
                 var burnAvg = GetBurnedAverage();
+
                 var circulation = GetCirculation();
 
                 var item = new Stat
                 {
-                    Burned = totalBurned.ToEth(),
+                    Burned = burned.ToEth(),
                     BurnLast1H = burn1.ToEth(),
                     BurnLast24H = burn24.ToEth(),
                     BurnAvgDay = burnAvg.ToEth(),
@@ -109,89 +111,88 @@ namespace dm.DYT.Stats
             }
         }
 
-        private Task GetInfo()
+        private async Task GetInfo()
         {
             try
             {
                 var client = new RestClient("https://api.etherscan.io");
                 GetTxs(client);
-                Thread.Sleep(200);
-                GetSupply(client);
-                Thread.Sleep(200);
-                GetFund(client);
-                Thread.Sleep(200);
-                GetFund2(client);
-                Thread.Sleep(200);
-                GetFund3(client);
+                await Task.Delay(200);
 
-                while (supply == null || fund == null || fund2 == null || fund3 == null || esTxs == null)
+                var client2 = new RestClient("https://api.ethplorer.io");
+                GetSupply(client2);
+                await Task.Delay(200);
+                GetFund(client2);
+                await Task.Delay(200);
+                GetFund2(client2);
+                await Task.Delay(200);
+                GetFund3(client2);
+
+                while (supply == 0 || fund == 0 || fund2 == 0 || fund3 == 0 || esTxs == null)
                 {
-                    Thread.Sleep(500);
+                    await Task.Delay(200);
                 }
+
+                client = null;
+                client2 = null;
             }
             catch (Exception ex)
             {
                 log.Error(ex);
             }
-            return Task.CompletedTask;
         }
 
         private void GetSupply(RestClient client)
         {
-            var req = new RestRequest("api", Method.GET);
-            req.AddParameter("module", "stats");
-            req.AddParameter("action", "tokensupply");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            req.AddParameter("apikey", config.EtherscanToken);
-            client.ExecuteAsync<EsToken>(req, res =>
+            var req = new RestRequest("getTokenInfo/0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4", Method.GET);
+            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            req.AddParameter("apiKey", "freekey");
+            client.ExecuteAsync<EpToken>(req, res =>
             {
-                supply = BigInteger.Parse(res.Data.Result);
-                log.Info($"GetSupply: {res.Data.Message}");
+                supply = BigInteger.Parse(res.Data.TotalSupply);
+                log.Info($"GetSupply: OK ({supply.ToString()})");
             });
         }
 
         private void GetFund(RestClient client)
         {
-            var req = new RestRequest("api", Method.GET);
-            req.AddParameter("module", "account");
-            req.AddParameter("action", "tokenbalance");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            req.AddParameter("address", "0x4a08a3cbc29dea9a9d7ee448ef754376b4983763");
-            req.AddParameter("apikey", config.EtherscanToken);
-            client.ExecuteAsync<EsToken>(req, res =>
+            var req = new RestRequest("getAddressInfo/0x4a08a3cbc29dea9a9d7ee448ef754376b4983763", Method.GET);
+            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            req.AddParameter("apiKey", "freekey");
+            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            client.ExecuteAsync<EpInfo>(req, res =>
             {
-                fund = BigInteger.Parse(res.Data.Result);
-                log.Info($"GetFund: {res.Data.Message}");
+                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
+                fund = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
+                log.Info($"GetFund: OK ({fund.ToString()})");
             });
         }
 
         private void GetFund2(RestClient client)
         {
-            var req = new RestRequest("api", Method.GET);
-            req.AddParameter("module", "account");
-            req.AddParameter("action", "tokenbalance");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            req.AddParameter("address", "0x26bb02501e8460c4eb461df0e9a7d598b9aef190");
-            req.AddParameter("apikey", config.EtherscanToken);
-            client.ExecuteAsync<EsToken>(req, res =>
+            var req = new RestRequest("getAddressInfo/0x26bb02501e8460c4eb461df0e9a7d598b9aef190", Method.GET);
+            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            req.AddParameter("apiKey", "freekey");
+            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            client.ExecuteAsync<EpInfo>(req, res =>
             {
-                fund2 = BigInteger.Parse(res.Data.Result);
-                log.Info($"GetFund2: {res.Data.Message}");
+                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
+                fund2 = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
+                log.Info($"GetFund2: OK ({fund2.ToString()})");
             });
         }
 
         private void GetFund3(RestClient client)
         {
-            var req = new RestRequest("api", Method.GET);
-            req.AddParameter("module", "account");
-            req.AddParameter("action", "tokenbalance");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            req.AddParameter("address", "0x010b3a9e0a199e45ebb3d08de47479ffe6a789a1");
-            req.AddParameter("apikey", config.EtherscanToken);
-            client.ExecuteAsync<EsToken>(req, res =>
+            var req = new RestRequest("getAddressInfo/0x010b3a9e0a199e45ebb3d08de47479ffe6a789a1", Method.GET);
+            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            req.AddParameter("apiKey", "freekey");
+            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            client.ExecuteAsync<EpInfo>(req, res =>
             {
-                fund3 = BigInteger.Parse(res.Data.Result);
-                log.Info($"GetFund3: {res.Data.Message}");
+                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
+                fund3 = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
+                log.Info($"GetFund3: OK ({fund3.ToString()})");
             });
         }
 
@@ -207,6 +208,7 @@ namespace dm.DYT.Stats
                 start = int.Parse(lastTx.BlockNumber) + 1;
 
             var req = new RestRequest("api", Method.GET);
+            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             req.AddParameter("module", "account");
             req.AddParameter("action", "tokentx");
             req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
@@ -215,39 +217,50 @@ namespace dm.DYT.Stats
             req.AddParameter("apikey", config.EtherscanToken);
             client.ExecuteAsync<EsTxs>(req, res =>
             {
+                if (res.Data.Result.Count == 0)
+                {
+                    esTxs = new List<EsTxsResult>();
+                    log.Info($"GetTxs: {res.Data.Message} (0)");
+                    return;
+                }
+
                 esTxs = res.Data.Result
                     .OrderBy(x => x.BlockNumber)
                     .ToList();
-                log.Info($"GetTxs: {res.Data.Message}");
+                log.Info($"GetTxs: {res.Data.Message} ({esTxs.Count()}: {start} to {esTxs.Last().BlockNumber})");
             });
         }
 
-        private void InsertNewTxs()
+        private async Task InsertNewTxs()
         {
-            foreach (var tx in esTxs)
+            if (esTxs.Count > 0)
             {
-                var newTx = new Transaction
+                log.Info("Inserting newest transactions");
+                foreach (var tx in esTxs)
                 {
-                    BlockNumber = tx.BlockNumber,
-                    Hash = tx.Hash,
-                    To = tx.To,
-                    TimeStamp = tx.TimeStamp,
-                    Value = tx.Value
-                };
-                db.Add(newTx);
+                    var newTx = new Transaction
+                    {
+                        BlockNumber = tx.BlockNumber,
+                        Hash = tx.Hash,
+                        To = tx.To,
+                        TimeStamp = tx.TimeStamp,
+                        Value = tx.Value
+                    };
+                    db.Add(newTx);
+                }
+                await db.SaveChangesAsync();
             }
-            db.SaveChanges();
         }
 
-        private BigInteger GetBurned()
+        private void GetBurned()
         {
             var total = BigInteger.Parse("2000000000000000000000000");
-            return BigInteger.Subtract(total, supply);
+            burned = BigInteger.Subtract(total, supply);
         }
 
         private BigInteger GetCirculation()
         {
-            var total = BigInteger.Parse("2000000000000000000000000");
+            var total = supply;
             total = BigInteger.Subtract(total, fund);
             total = BigInteger.Subtract(total, fund2);
             total = BigInteger.Subtract(total, fund3);

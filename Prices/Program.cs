@@ -2,7 +2,6 @@
 using CoinGecko.Entities.Response.Coins;
 using dm.DYT.Data;
 using dm.DYT.Data.Models;
-using dm.DYT.Response;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace dm.DYT.Prices
@@ -126,30 +124,31 @@ namespace dm.DYT.Prices
             }
         }
 
-        private Task GetInfo()
+        private async Task GetInfo()
+        {
+
+            GetPrices();
+
+            while (data == null)
+            {
+                await Task.Delay(200);
+            }
+
+        }
+
+        private async void GetPrices()
         {
             try
             {
-                GetPrices();
+                var client = CoinGeckoClient.Instance;
+                data = await client.CoinsClient.GetAllCoinDataWithId("dynamite", "false", true, true, false, false, false);
 
-                while (data == null)
-                {
-                    Thread.Sleep(500);
-                }
+                log.Info($"GetPrices: OK");
             }
             catch (Exception ex)
             {
                 log.Error(ex);
             }
-            return Task.CompletedTask;
-        }
-
-        private async void GetPrices()
-        {
-            var client = CoinGeckoClient.Instance;
-            data = await client.CoinsClient.GetAllCoinDataWithId("dynamite", "false", true, true, false, false, false);
-
-            log.Info($"GetPrices: OK");
         }
     }
 }
