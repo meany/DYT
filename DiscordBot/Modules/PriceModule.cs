@@ -106,7 +106,6 @@ namespace dm.DYT.DiscordBot.Modules
                     .AddField($"— Statistics (DYT)", "```ml\n" +
                         $"Transactions:   {item.Stat.Transactions.Format()}\n" +
                         $"Total Supply:   {item.Stat.Supply.FormatDyt()}\n" +
-                        $"Circulation:    {item.Stat.Circulation.FormatDyt()}\n" +
                         $"Total Burned:   {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
                         $"Burn/Last/1H:   {item.Stat.BurnLast1H.FormatDyt()}\n" +
                         $"Burn/Last/24H:  {item.Stat.BurnLast24H.FormatDyt()}" +

@@ -76,7 +76,6 @@ namespace dm.DYT.TelegramBot
                         $"🔥 {item.Stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
                         $"🤝 Transactions: {item.Stat.Transactions.Format()}\n" +
                         $"📃 Supply: {item.Stat.Supply.FormatDyt()} $DYT\n" +
-                        $"🔁 Circulation: {item.Stat.Circulation.FormatDyt()} $DYT\n" +
                         $"🔥 Burned: {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
                         $"🤑 Price/USD: ${item.Price.PriceUSD.FormatUsd()}\n" +
                         $"🤑 Price/BTC: ₿{item.Price.PriceBTC.FormatBtc()}\n" +
