@@ -35,7 +35,7 @@ namespace dm.DYT.DiscordBot.Modules
                         AddHelp(cmd, ref output);
                         output.WithAuthor(author =>
                         {
-                            author.WithName($"DynamiteBot v{Common.Util.GetVersion()}");
+                            author.WithName($"DYTStats v{Common.Util.GetVersion()}");
                         }).WithFooter(footer =>
                         {
                             footer.WithText($"Use '{config.BotPrefix}help <command>' to get help with a specifc command")

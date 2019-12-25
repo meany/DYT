@@ -30,7 +30,6 @@ namespace dm.DYT.Data
 
             if (price == null)
             {
-                vm.IsOldPrice = true;
                 price = await db.Prices360
                     .AsNoTracking()
                     .OrderByDescending(x => x.Date)

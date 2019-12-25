@@ -1,7 +1,8 @@
 {
   "BotToken": "<TOKEN>",
   "ChatId": 0,
-  
+  "AdminId": 0,
+
   "ConnectionStrings": {
     "Database": "<CONNECTION STRING>"
   }

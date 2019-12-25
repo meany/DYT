@@ -69,35 +69,53 @@ namespace dm.DYT.Prices
                 await GetInfo();
 
                 // market cap
-                int mktCapUsd = int.Parse(data.MarketData.MarketCap["usd"].Value.ToString());
-                decimal mktCapUsdChgAmt = decimal.Parse(data.MarketData.MarketCapChange24HInCurrency["usd"].ToString(), NumberStyles.Any);
+                decimal mktCapUsd = decimal.Parse(data.MarketData.MarketCap["usd"].Value.ToString());
+                decimal mktCapUsdChgAmt = (data.MarketData.MarketCapChange24HInCurrency.Count == 0) ? 0 : decimal.Parse(data.MarketData.MarketCapChange24HInCurrency["usd"].ToString(), NumberStyles.Any);
                 Change mktCapUsdChg = (mktCapUsdChgAmt > 0) ? Change.Up : (mktCapUsdChgAmt < 0) ? Change.Down : Change.None;
-                decimal mktCapUsdChgPct = decimal.Parse(data.MarketData.MarketCapChangePercentage24HInCurrency["usd"].ToString(), NumberStyles.Any);
+                decimal mktCapUsdChgPct = (data.MarketData.MarketCapChangePercentage24HInCurrency.Count == 0) ? 0 : decimal.Parse(data.MarketData.MarketCapChangePercentage24HInCurrency["usd"].ToString(), NumberStyles.Any);
 
                 // volume
                 int volumeUsd = (int)Math.Round(data.MarketData.TotalVolume["usd"].Value);
 
                 // prices
                 decimal priceBtc = decimal.Parse(data.MarketData.CurrentPrice["btc"].Value.ToString(), NumberStyles.Any);
-                decimal priceBtcChgAmt = decimal.Parse(data.MarketData.PriceChange24HInCurrency["btc"].ToString(), NumberStyles.Any);
+
+                string changeBtc = "0";
+                string changeEth = "0";
+                string changeUsd = "0";
+                string changeBtcPct = "0";
+                string changeEthPct = "0";
+                string changeUsdPct = "0";
+                if (data.MarketData.PriceChange24HInCurrency.Count > 0 &&
+                    data.MarketData.PriceChangePercentage24HInCurrency.Count > 0)
+                {
+                    changeBtc = data.MarketData.PriceChange24HInCurrency["btc"].ToString();
+                    changeBtcPct = data.MarketData.PriceChangePercentage24HInCurrency["btc"].ToString();
+                    changeEth = data.MarketData.PriceChange24HInCurrency["eth"].ToString();
+                    changeEthPct = data.MarketData.PriceChangePercentage24HInCurrency["eth"].ToString();
+                    changeUsd = data.MarketData.PriceChange24HInCurrency["usd"].ToString();
+                    changeUsdPct = data.MarketData.PriceChangePercentage24HInCurrency["usd"].ToString();
+                }
+
+                decimal priceBtcChgAmt = decimal.Parse(changeBtc, NumberStyles.Any);
                 Change priceBtcChg = (priceBtcChgAmt > 0) ? Change.Up : (priceBtcChgAmt < 0) ? Change.Down : Change.None;
-                decimal priceBtcChgPct = decimal.Parse(data.MarketData.PriceChangePercentage24HInCurrency["btc"].ToString(), NumberStyles.Any);
+                decimal priceBtcChgPct = decimal.Parse(changeBtcPct, NumberStyles.Any);
 
                 decimal priceEth = decimal.Parse(data.MarketData.CurrentPrice["eth"].Value.ToString(), NumberStyles.Any);
-                decimal priceEthChgAmt = decimal.Parse(data.MarketData.PriceChange24HInCurrency["eth"].ToString(), NumberStyles.Any);
+                decimal priceEthChgAmt = decimal.Parse(changeEth, NumberStyles.Any);
                 Change priceEthChg = (priceEthChgAmt > 0) ? Change.Up : (priceEthChgAmt < 0) ? Change.Down : Change.None;
-                decimal priceEthChgPct = decimal.Parse(data.MarketData.PriceChangePercentage24HInCurrency["eth"].ToString(), NumberStyles.Any);
+                decimal priceEthChgPct = decimal.Parse(changeEthPct, NumberStyles.Any);
 
                 decimal priceUsd = decimal.Parse(data.MarketData.CurrentPrice["usd"].Value.ToString(), NumberStyles.Any);
-                decimal priceUsdChgAmt = decimal.Parse(data.MarketData.PriceChange24HInCurrency["usd"].ToString(), NumberStyles.Any);
+                decimal priceUsdChgAmt = decimal.Parse(changeUsd, NumberStyles.Any);
                 Change priceUsdChg = (priceUsdChgAmt > 0) ? Change.Up : (priceUsdChgAmt < 0) ? Change.Down : Change.None;
-                decimal priceUsdChgPct = decimal.Parse(data.MarketData.PriceChangePercentage24HInCurrency["usd"].ToString(), NumberStyles.Any);
+                decimal priceUsdChgPct = decimal.Parse(changeUsdPct, NumberStyles.Any);
 
                 var item = new Price360
                 {
                     Date = DateTime.UtcNow,
                     Group = stat.Group,
-                    MarketCapUSD = mktCapUsd,
+                    MarketCapUSD = int.Parse(Math.Round(mktCapUsd).ToString()),
                     MarketCapUSDChange = mktCapUsdChg,
                     MarketCapUSDChangePct = mktCapUsdChgPct,
                     PriceBTC = priceBtc,

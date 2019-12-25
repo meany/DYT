@@ -90,6 +90,21 @@ namespace dm.DYT.TelegramBot
                     );
 
                     log.Info("Stats sent");
+
+                    if (item.IsOutOfSync())
+                    {
+                        await botClient.SendTextMessageAsync(
+                          chatId: config.ChatId,
+                          text: "Stats or Price might be out of sync. The admin has been contacted."
+                        );
+
+                        await botClient.SendTextMessageAsync(
+                          chatId: config.AdminId,
+                          text: "Stats or Price might be out of sync."
+                        );
+
+                        log.Info("Price out of sync.");
+                    }
                 }
             }
             catch (Exception ex)

@@ -31,7 +31,6 @@ namespace dm.DYT.Stats
         private BigInteger supply;
         private BigInteger burned;
         private BigInteger fund;
-        private BigInteger fund2;
         private BigInteger fund3;
         private List<EsTxsResult> esTxs;
         private List<Transaction> dbTxs;
@@ -122,13 +121,9 @@ namespace dm.DYT.Stats
                 var client2 = new RestClient("https://api.ethplorer.io");
                 GetSupply(client2);
                 await Task.Delay(200);
-                GetFund(client2);
-                await Task.Delay(200);
-                GetFund2(client2);
-                await Task.Delay(200);
                 GetFund3(client2);
 
-                while (supply == 0 || fund == 0 || fund2 == 0 || fund3 == 0 || esTxs == null)
+                while (supply == 0 || fund3 == 0 || esTxs == null)
                 {
                     await Task.Delay(200);
                 }
@@ -151,34 +146,6 @@ namespace dm.DYT.Stats
             {
                 supply = BigInteger.Parse(res.Data.TotalSupply);
                 log.Info($"GetSupply: OK ({supply.ToString()})");
-            });
-        }
-
-        private void GetFund(RestClient client)
-        {
-            var req = new RestRequest("getAddressInfo/0x4a08a3cbc29dea9a9d7ee448ef754376b4983763", Method.GET);
-            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            req.AddParameter("apiKey", "freekey");
-            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            client.ExecuteAsync<EpInfo>(req, res =>
-            {
-                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
-                fund = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
-                log.Info($"GetFund: OK ({fund.ToString()})");
-            });
-        }
-
-        private void GetFund2(RestClient client)
-        {
-            var req = new RestRequest("getAddressInfo/0x26bb02501e8460c4eb461df0e9a7d598b9aef190", Method.GET);
-            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            req.AddParameter("apiKey", "freekey");
-            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            client.ExecuteAsync<EpInfo>(req, res =>
-            {
-                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
-                fund2 = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
-                log.Info($"GetFund2: OK ({fund2.ToString()})");
             });
         }
 
@@ -262,7 +229,6 @@ namespace dm.DYT.Stats
         {
             var total = supply;
             total = BigInteger.Subtract(total, fund);
-            total = BigInteger.Subtract(total, fund2);
             total = BigInteger.Subtract(total, fund3);
             return total;
         }

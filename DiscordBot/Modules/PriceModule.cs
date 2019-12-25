@@ -25,7 +25,7 @@ namespace dm.DYT.DiscordBot.Modules
         }
 
         [Command("price")]
-        [Summary("Displays the price and burn stats of Dynamite (DYT).")]
+        [Summary("Displays the price and burn stats of Do Your Tip (DYT).")]
         [Alias("p", "stats")]
         public async Task Price()
         {
@@ -84,7 +84,11 @@ namespace dm.DYT.DiscordBot.Modules
 
                     log.Debug($"Prices for stat group {item.Stat.Group} not found");
 
-                    var title = $"Current Price and Statistics";
+                    string title = $"Current Price and Statistics";
+                    string footerText = $"{item.Price.Date.ToDate()}. Powered by Etherscan.io & CoinGecko APIs.";
+                    if (item.IsOutOfSync())
+                        footerText += " Stats or Price might be out of sync. The admin has been contacted.";
+
                     var output = new EmbedBuilder();
                     output.WithColor(Color.DYNAMITE_RED)
                     .WithAuthor(author =>
@@ -109,7 +113,7 @@ namespace dm.DYT.DiscordBot.Modules
                         "```")
                     .WithFooter(footer =>
                     {
-                        footer.WithText($"{item.Price.Date.ToDate()}. Powered by Etherscan.io & CoinGecko APIs.");
+                        footer.WithText(footerText);
                     });
 
                     await Discord.ReplyAsync(Context, output, deleteUserMessage: false).ConfigureAwait(false);
