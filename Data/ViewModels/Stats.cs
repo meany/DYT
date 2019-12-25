@@ -12,11 +12,9 @@ namespace dm.DYT.Data.ViewModels
 
         public bool IsOutOfSync()
         {
-            var syncMin = (Stat.Date - Price.Date).TotalMinutes;
-            if (syncMin > 30 || syncMin < -30)
-                return true;
-
-            return false;
+            var oosStat = Stat.Date.AddMinutes(30) <= DateTime.UtcNow;
+            var oosPrice = Price.Date.AddMinutes(30) <= DateTime.UtcNow;
+            return (oosStat || oosPrice);
         }
     }
 }

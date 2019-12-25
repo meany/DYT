@@ -87,7 +87,7 @@ namespace dm.DYT.DiscordBot.Modules
                     string title = $"Current Price and Statistics";
                     string footerText = $"{item.Price.Date.ToDate()}. Powered by Etherscan.io & CoinGecko APIs.";
                     if (item.IsOutOfSync())
-                        footerText += " Stats or Price might be out of sync. The admin has been contacted.";
+                        footerText += " Stats might be out of sync. The admin has been contacted.";
 
                     var output = new EmbedBuilder();
                     output.WithColor(Color.DYNAMITE_RED)

@@ -95,12 +95,12 @@ namespace dm.DYT.TelegramBot
                     {
                         await botClient.SendTextMessageAsync(
                           chatId: config.ChatId,
-                          text: "Stats or Price might be out of sync. The admin has been contacted."
+                          text: "Stats might be out of sync. The admin has been contacted."
                         );
 
                         await botClient.SendTextMessageAsync(
                           chatId: config.AdminId,
-                          text: "Stats or Price might be out of sync."
+                          text: "Stats out of sync."
                         );
 
                         log.Info("Price out of sync.");
