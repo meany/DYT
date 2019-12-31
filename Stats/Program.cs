@@ -30,8 +30,6 @@ namespace dm.DYT.Stats
 
         private BigInteger supply;
         private BigInteger burned;
-        private BigInteger fund;
-        private BigInteger fund3;
         private List<EsTxsResult> esTxs;
         private List<Transaction> dbTxs;
 
@@ -84,7 +82,7 @@ namespace dm.DYT.Stats
                 var burn24 = GetBurnedHours(24);
                 var burnAvg = GetBurnedAverage();
 
-                var circulation = GetCirculation();
+                var circulation = supply;
 
                 var item = new Stat
                 {
@@ -120,12 +118,11 @@ namespace dm.DYT.Stats
 
                 var client2 = new RestClient("https://api.ethplorer.io");
                 GetSupply(client2);
-                await Task.Delay(200);
-                GetFund3(client2);
 
-                while (supply == 0 || fund3 == 0 || esTxs == null)
+                while (supply == 0 || esTxs == null)
                 {
                     await Task.Delay(200);
+                    //log.Debug($"supply: {supply} | esTxs: {esTxs == null}");
                 }
 
                 client = null;
@@ -146,20 +143,6 @@ namespace dm.DYT.Stats
             {
                 supply = BigInteger.Parse(res.Data.TotalSupply);
                 log.Info($"GetSupply: OK ({supply.ToString()})");
-            });
-        }
-
-        private void GetFund3(RestClient client)
-        {
-            var req = new RestRequest("getAddressInfo/0x010b3a9e0a199e45ebb3d08de47479ffe6a789a1", Method.GET);
-            req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            req.AddParameter("apiKey", "freekey");
-            req.AddParameter("token", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
-            client.ExecuteAsync<EpInfo>(req, res =>
-            {
-                double bal = res.Data.Tokens.First(x => x.TokenInfo.Symbol == "DYT").Balance;
-                fund3 = BigInteger.Parse(bal.ToString(), NumberStyles.Any);
-                log.Info($"GetFund3: OK ({fund3.ToString()})");
             });
         }
 
@@ -223,14 +206,6 @@ namespace dm.DYT.Stats
         {
             var total = BigInteger.Parse("2000000000000000000000000");
             burned = BigInteger.Subtract(total, supply);
-        }
-
-        private BigInteger GetCirculation()
-        {
-            var total = supply;
-            total = BigInteger.Subtract(total, fund);
-            total = BigInteger.Subtract(total, fund3);
-            return total;
         }
 
         private BigInteger GetBurnedHours(int hours)
