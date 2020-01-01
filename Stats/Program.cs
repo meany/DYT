@@ -68,7 +68,7 @@ namespace dm.DYT.Stats
         {
             try
             {
-                log.Info("Getting Etherscan/Ethplorer info");
+                log.Info("Getting Etherscan info");
                 await GetInfo();
                 await InsertNewTxs();
 
@@ -115,9 +115,7 @@ namespace dm.DYT.Stats
                 var client = new RestClient("https://api.etherscan.io");
                 GetTxs(client);
                 await Task.Delay(200);
-
-                var client2 = new RestClient("https://api.ethplorer.io");
-                GetSupply(client2);
+                GetSupply(client);
 
                 while (supply == 0 || esTxs == null)
                 {
@@ -126,7 +124,6 @@ namespace dm.DYT.Stats
                 }
 
                 client = null;
-                client2 = null;
             }
             catch (Exception ex)
             {
@@ -136,12 +133,16 @@ namespace dm.DYT.Stats
 
         private void GetSupply(RestClient client)
         {
-            var req = new RestRequest("getTokenInfo/0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4", Method.GET);
+            var req = new RestRequest("api", Method.GET); 
+            new RestRequest("getTokenInfo/0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4", Method.GET);
             req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-            req.AddParameter("apiKey", "freekey");
-            client.ExecuteAsync<EpToken>(req, res =>
+            req.AddParameter("module", "stats");
+            req.AddParameter("action", "tokensupply");
+            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            req.AddParameter("apikey", config.EtherscanToken);
+            client.ExecuteAsync<EsToken>(req, res =>
             {
-                supply = BigInteger.Parse(res.Data.TotalSupply);
+                supply = BigInteger.Parse(res.Data.Result);
                 log.Info($"GetSupply: OK ({supply.ToString()})");
             });
         }
