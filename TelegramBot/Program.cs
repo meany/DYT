@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types.Enums;
 
 namespace dm.DYT.TelegramBot
 {
@@ -58,12 +59,11 @@ namespace dm.DYT.TelegramBot
             try
             {
                 botClient = new TelegramBotClient(config.BotToken);
-
                 log.Info($"Bot connected");
 
-                if (config.ChatId == 0)
+                if (config.BotWatch)
                 {
-                    log.Info("ChatId = 0, waiting for messages");
+                    log.Info("BotWatch = true, waiting for messages");
                     botClient.OnMessage += BotClient_OnMessage;
                     botClient.StartReceiving();
                     await Task.Delay(-1).ConfigureAwait(false);
@@ -83,23 +83,29 @@ namespace dm.DYT.TelegramBot
                         $"📈 Market Cap: ${item.Price.MarketCapUSD.FormatLarge()}\n" +
                         $"💸 Volume: ${item.Price.VolumeUSD.FormatLarge()}";
 
-                    await botClient.SendTextMessageAsync(
-                      chatId: config.ChatId,
-                      text: text
-                    );
+                    foreach (long chatId in config.ChatIds)
+                    {
+                        await botClient.SendTextMessageAsync(
+                          chatId: chatId,
+                          text: text
+                        );
 
-                    log.Info("Stats sent");
+                        log.Info($"Stats sent to {chatId}");
+                    }
 
                     if (item.IsOutOfSync())
                     {
-                        await botClient.SendTextMessageAsync(
-                          chatId: config.ChatId,
-                          text: "Stats might be out of sync. The admin has been contacted."
-                        );
+                        foreach (long chatId in config.ChatIds)
+                        {
+                            await botClient.SendTextMessageAsync(
+                                chatId: chatId,
+                                text: "Stats might be out of sync. The admin has been contacted."
+                            );
+                        }
 
                         await botClient.SendTextMessageAsync(
-                          chatId: config.AdminId,
-                          text: "Stats out of sync."
+                            chatId: config.AdminId,
+                            text: "Stats out of sync."
                         );
 
                         log.Info("Price out of sync.");
