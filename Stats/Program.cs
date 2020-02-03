@@ -134,11 +134,11 @@ namespace dm.DYT.Stats
         private void GetSupply(RestClient client)
         {
             var req = new RestRequest("api", Method.GET); 
-            new RestRequest("getTokenInfo/0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4", Method.GET);
+            new RestRequest("getTokenInfo/0x740623d2c797b7d8d1ecb98e9b4afcf99ec31e14", Method.GET);
             req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             req.AddParameter("module", "stats");
             req.AddParameter("action", "tokensupply");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            req.AddParameter("contractaddress", "0x740623d2c797b7d8d1ecb98e9b4afcf99ec31e14");
             req.AddParameter("apikey", config.EtherscanToken);
             client.ExecuteAsync<EsToken>(req, res =>
             {
@@ -162,7 +162,7 @@ namespace dm.DYT.Stats
             req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             req.AddParameter("module", "account");
             req.AddParameter("action", "tokentx");
-            req.AddParameter("contractaddress", "0xad95a3c0fdc9bc4b27fd79e028a0a808d5564aa4");
+            req.AddParameter("contractaddress", "0x740623d2c797b7d8d1ecb98e9b4afcf99ec31e14");
             req.AddParameter("startblock", start);
             req.AddParameter("endblock", "999999999");
             req.AddParameter("apikey", config.EtherscanToken);
