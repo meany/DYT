@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dm.DYT.Data;
 
 namespace dm.DYT.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200530124110_from")]
+    partial class from
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,39 +172,6 @@ namespace dm.DYT.Data.Migrations
                     b.HasIndex("TimeStamp");
 
                     b.ToTable("Transactions");
-                });
-
-            modelBuilder.Entity("dm.DYT.Data.Models.UniswapTransaction", b =>
-                {
-                    b.Property<int>("UniswapTransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<decimal>("DYT")
-                        .HasColumnType("decimal(25, 18)");
-
-                    b.Property<int?>("TransactionId");
-
-                    b.Property<int>("TxType");
-
-                    b.Property<decimal>("USD")
-                        .HasColumnType("decimal(11, 6)");
-
-                    b.Property<decimal>("WETH")
-                        .HasColumnType("decimal(25, 18)");
-
-                    b.HasKey("UniswapTransactionId");
-
-                    b.HasIndex("TransactionId");
-
-                    b.ToTable("UniswapTransactions");
-                });
-
-            modelBuilder.Entity("dm.DYT.Data.Models.UniswapTransaction", b =>
-                {
-                    b.HasOne("dm.DYT.Data.Models.Transaction", "Transaction")
-                        .WithMany()
-                        .HasForeignKey("TransactionId");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,8 @@
 {
   "EtherscanToken": "<TOKEN>",
+  "UniswapRouter": "0xf164fc0ec4e93095b804a4795bbe1e041497b92a",
+  "UniswapDYTAddress": "0x242d289b3eeb6842ce0fcc0d87932402299ae5b3",
+  "UniswapWETHAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
 
   "ConnectionStrings": {
     "Database": "<CONNECTION STRING>"

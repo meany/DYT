@@ -51,5 +51,14 @@ namespace dm.DYT.Data
 
             return vm;
         }
+
+        public static async Task<Price360> GetPrices(AppDbContext db)
+        {
+            return await db.Prices360
+                .AsNoTracking()
+                .OrderByDescending(x => x.Date)
+                .FirstOrDefaultAsync()
+                .ConfigureAwait(false);
+        }
     }
 }

@@ -74,6 +74,12 @@ namespace dm.DYT.Common
             return decimal.Parse($"{bi.ToString()}.{rem.ToString().PadLeft(18, '0')}");
         }
 
+        public static decimal ToUsd(this BigInteger source)
+        {
+            var bi = BigInteger.DivRem(source, BigInteger.Parse(BigInteger.Pow(11, 6).ToString()), out BigInteger rem);
+            return decimal.Parse($"{bi.ToString()}.{rem.ToString().PadLeft(6, '0')}");
+        }
+
         public static string TrimEnd(this string source, string suffixToRemove, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase)
         {
 

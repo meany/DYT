@@ -12,6 +12,7 @@ namespace dm.DYT.Data
         public DbSet<Request> Requests { get; set; }
         public DbSet<Stat> Stats { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<UniswapTransaction> UniswapTransactions { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

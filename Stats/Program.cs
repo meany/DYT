@@ -3,6 +3,7 @@ using dm.DYT.Data;
 using dm.DYT.Data.Models;
 using dm.DYT.Response;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,7 @@ namespace dm.DYT.Stats
         private BigInteger supply;
         private BigInteger burned;
         private List<EsTxsResult> esTxs;
+        private List<EsInternalTxsResult> esInternalTxs;
         private List<Transaction> dbTxs;
 
         public static void Main(string[] args)
@@ -71,6 +73,8 @@ namespace dm.DYT.Stats
                 log.Info("Getting Etherscan info");
                 await GetInfo();
                 await InsertNewTxs();
+                GetInternalTxInfo();
+                await InsertNewInternalTxs();
 
                 dbTxs = db.Transactions
                     .AsNoTracking()
@@ -131,9 +135,23 @@ namespace dm.DYT.Stats
             }
         }
 
+        private void GetInternalTxInfo()
+        {
+            try
+            {
+                var client = new RestClient("https://api.etherscan.io");
+                GetInternalTxs(client);
+                client = null;
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+        }
+
         private void GetSupply(RestClient client)
         {
-            var req = new RestRequest("api", Method.GET); 
+            var req = new RestRequest("api", Method.GET);
             new RestRequest("getTokenInfo/0x740623d2c797b7d8d1ecb98e9b4afcf99ec31e14", Method.GET);
             req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             req.AddParameter("module", "stats");
@@ -143,7 +161,7 @@ namespace dm.DYT.Stats
             client.ExecuteAsync<EsToken>(req, res =>
             {
                 supply = BigInteger.Parse(res.Data.Result);
-                log.Info($"GetSupply: OK ({supply.ToString()})");
+                log.Info($"GetSupply: OK ({supply})");
             });
         }
 
@@ -182,6 +200,42 @@ namespace dm.DYT.Stats
             });
         }
 
+        private void GetInternalTxs(RestClient client)
+        {
+            if (esInternalTxs == null)
+            {
+                esInternalTxs = new List<EsInternalTxsResult>();
+            }
+
+            foreach (var tx in esTxs)
+            {
+                if (tx.From == config.UniswapDYTAddress || tx.To == config.UniswapDYTAddress)
+                {
+
+                    var req = new RestRequest("api", Method.GET);
+                    req.AddParameter("time", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                    req.AddParameter("module", "account");
+                    req.AddParameter("action", "txlistinternal");
+                    req.AddParameter("txhash", tx.Hash);
+                    req.AddParameter("apikey", config.EtherscanToken);
+                    var handle = client.ExecuteAsync<EsInternalTxs>(req, res =>
+                    {
+                        if (res.Data.Result.Count == 0 || res.Data.Result.Count > 2)
+                        {
+                            log.Info($"GetInternalTxs: {res.Data.Message}");
+                            return;
+                        }
+
+                        esInternalTxs.Add(res.Data.Result
+                            .Where(x => x.From == config.UniswapWETHAddress ||
+                                x.To == config.UniswapWETHAddress)
+                            .First());
+                        log.Info($"GetInternalTxs: {res.Data.Message} ({esInternalTxs.Count})");
+                    });
+                }
+            }
+        }
+
         private async Task InsertNewTxs()
         {
             if (esTxs.Count > 0)
@@ -193,6 +247,7 @@ namespace dm.DYT.Stats
                     {
                         BlockNumber = tx.BlockNumber,
                         Hash = tx.Hash,
+                        From = tx.From,
                         To = tx.To,
                         TimeStamp = tx.TimeStamp,
                         Value = tx.Value
@@ -200,6 +255,37 @@ namespace dm.DYT.Stats
                     db.Add(newTx);
                 }
                 await db.SaveChangesAsync();
+            }
+        }
+
+        private async Task InsertNewInternalTxs()
+        {
+            if (esInternalTxs.Count > 0)
+            {
+                log.Info("Inserting newest Uniswap transactions");
+                var prices = await Data.Common.GetPrices(db);
+
+                foreach (var intTx in esInternalTxs)
+                {
+                    var tx = db.Transactions.First(x => x.BlockNumber == intTx.BlockNumber);
+                    var valDYT = BigInteger.Parse(tx.Value).ToEth();
+                    var valWETH = BigInteger.Parse(intTx.Value).ToEth();
+                    var valUSD = valDYT * prices.PriceUSD;
+
+                    var newUniTx = new UniswapTransaction
+                    {
+                        Transaction = tx,
+                        TxType = (intTx.From == config.UniswapDYTAddress)
+                            ? UniswapTransactionType.Buy : UniswapTransactionType.Sell,
+                        DYT = valDYT,
+                        WETH = valWETH,
+                        USD = valUSD
+                    };
+                    
+                    db.Add(newUniTx);
+
+                    // start telegram bot w/ tx
+                }
             }
         }
 

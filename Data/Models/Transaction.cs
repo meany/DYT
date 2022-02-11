@@ -10,6 +10,7 @@ namespace dm.DYT.Data.Models
         public string BlockNumber { get; set; }
         public DateTimeOffset TimeStamp { get; set; }
         public string Hash { get; set; }
+        public string From { get; set; }
         public string To { get; set; }
         public string Value { get; set; }
     }

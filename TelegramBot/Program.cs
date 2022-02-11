@@ -46,7 +46,7 @@ namespace dm.DYT.TelegramBot
                 db = services.GetService<AppDbContext>();
                 db.Database.Migrate();
 
-                await RunBot();
+                await RunBot(args);
             }
             catch (Exception ex)
             {
@@ -54,12 +54,18 @@ namespace dm.DYT.TelegramBot
             }
         }
 
-        private async Task RunBot()
+        private async Task RunBot(string[] args)
         {
             try
             {
                 botClient = new TelegramBotClient(config.BotToken);
                 log.Info($"Bot connected");
+
+                if (args.Length > 0)
+                {
+                    await RunBotArgs(args, botClient);
+                    return;
+                }
 
                 if (config.BotWatch)
                 {
@@ -72,36 +78,44 @@ namespace dm.DYT.TelegramBot
                 {
                     var item = await Data.Common.GetStats(db);
 
-                    string text = $"🔥 {item.Stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
-                        $"🔥 {item.Stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
-                        $"🤝 Transactions: {item.Stat.Transactions.Format()}\n" +
-                        $"📃 Supply: {item.Stat.Supply.FormatDyt()} $DYT\n" +
-                        $"🔥 Burned: {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
-                        $"🤑 Price/USD: ${item.Price.PriceUSD.FormatUsd()}\n" +
-                        $"🤑 Price/BTC: ₿{item.Price.PriceBTC.FormatBtc()}\n" +
-                        $"🤑 Price/ETH: Ξ{item.Price.PriceETH.FormatEth()}\n" +
-                        $"📈 Market Cap: ${item.Price.MarketCapUSD.FormatLarge()}\n" +
-                        $"💸 Volume: ${item.Price.VolumeUSD.FormatLarge()}";
-
-                    foreach (long chatId in config.ChatIds)
+                    if (item.Stat.BurnLast1H == 0)
                     {
-                        await botClient.SendTextMessageAsync(
-                          chatId: chatId,
-                          text: text
-                        );
+                        log.Info("0 $DYT burned in the last hour, not sending message.");
+                    }
+                    else
+                    {
 
-                        log.Info($"Stats sent to {chatId}");
+                        string text = $"🔥 {item.Stat.BurnLast1H.FormatDyt()} $DYT burned in the last hour\n" +
+                            $"🔥 {item.Stat.BurnLast24H.FormatDyt()} $DYT burned in the last 24 hours\n\n" +
+                            $"🤝 Transactions: {item.Stat.Transactions.Format()}\n" +
+                            $"📃 Supply: {item.Stat.Supply.FormatDyt()} $DYT\n" +
+                            $"🔥 Burned: {item.Stat.Burned.FormatDyt()} (Rate: {item.Stat.BurnAvgDay.FormatDyt()}/day)\n" +
+                            $"🤑 Price/USD: ${item.Price.PriceUSD.FormatUsd()}\n" +
+                            $"🤑 Price/BTC: ₿{item.Price.PriceBTC.FormatBtc()}\n" +
+                            $"🤑 Price/ETH: Ξ{item.Price.PriceETH.FormatEth()}\n" +
+                            $"📈 Market Cap: ${item.Price.MarketCapUSD.FormatLarge()}\n" +
+                            $"💸 Volume: ${item.Price.VolumeUSD.FormatLarge()}";
+
+                        foreach (long chatId in config.ChatIds)
+                        {
+                            await botClient.SendTextMessageAsync(
+                              chatId: chatId,
+                              text: text
+                            );
+
+                            log.Info($"Stats sent to {chatId}");
+                        }
                     }
 
                     if (item.IsOutOfSync())
                     {
-                        foreach (long chatId in config.ChatIds)
-                        {
-                            await botClient.SendTextMessageAsync(
-                                chatId: chatId,
-                                text: "Stats might be out of sync. The admin has been contacted."
-                            );
-                        }
+                        //foreach (long chatId in config.ChatIds)
+                        //{
+                        //    await botClient.SendTextMessageAsync(
+                        //        chatId: chatId,
+                        //        text: "Stats might be out of sync. The admin has been contacted."
+                        //    );
+                        //}
 
                         await botClient.SendTextMessageAsync(
                             chatId: config.AdminId,
@@ -116,6 +130,37 @@ namespace dm.DYT.TelegramBot
             {
                 log.Error(ex);
             }
+        }
+
+        private async Task RunBotArgs(string[] args, ITelegramBotClient botClient)
+        {
+            switch (args[0])
+            {
+                case "uniswap":
+                    {
+                        if (int.TryParse(args[1], out int rowId))
+                            await RunBotUniTx(botClient, rowId);
+                        break;
+                    }
+            }
+        }
+
+        private async Task RunBotUniTx(ITelegramBotClient botClient, int rowId)
+        {
+            //var item = await Data.Common.GetUniTx(db, rowId);
+
+            //string text = $"🤝 Uniswap {item.Transaction.UniDirection} trade 🔥\n" +
+            //                $"💸 {item.Transaction.UniDYTAmount} $DYT @ Ξ{item.Transaction.UniETHAmount} (${item.Transaction.UniUSDAmount})";
+
+            //foreach (long chatId in config.ChatIds)
+            //{
+            //    await botClient.SendTextMessageAsync(
+            //      chatId: chatId,
+            //      text: text
+            //    );
+
+            //    log.Info($"Stats sent to {chatId}");
+            //}
         }
 
         private void BotClient_OnMessage(object sender, MessageEventArgs e)
